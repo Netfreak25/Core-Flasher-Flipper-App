@@ -1,0 +1,13 @@
+.vscode/
+.ufbt*/
+.python-ssl-workaround/
+dist*/
+build/
+release/
+__pycache__/
+*.pyc
+*.fap
+*.fal
+*.elf
+*.map
+*.log

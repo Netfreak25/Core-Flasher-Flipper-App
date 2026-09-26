@@ -1,0 +1,18 @@
+Core Flasher for Flipper Zero 1.0.0
+
+This is an independent mod of FlipTDI by SkorP / Skorpionm, distributed in
+flipperdevices/flipperzero-good-faps at commit
+efc32b71838d3d5e8d604c1ba7a4793916d5212f.
+
+The FTDI/MPSSE and USB implementation contains adapted upstream source.
+Original origin revision: ee70c30014bfd5b85691fb8a219ae436c84e04e8.
+See third_party/flip_tdi/provenance.json for the adapted file list.
+
+Local modifications by Moritz, September 2026: external native hardware SPI at
+2 MHz, Core Flasher pin mapping and menu, raw byte forwarding without flash
+opcode policy, complete MPSSE payload buffering, retained pending USB packets,
+USB lifecycle handling, hardware JEDEC diagnostic and standalone FAP packaging.
+The application runs independently.
+
+The modified work is distributed under the GNU General Public License,
+version 3. See LICENSE. This software is provided without warranty.

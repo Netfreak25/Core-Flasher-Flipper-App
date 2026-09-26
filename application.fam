@@ -1,0 +1,23 @@
+App(
+    appid="core_flasher",
+    name="Core Flasher",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="core_flasher_app",
+    requires=["gui"],
+    sources=[
+        "src/main.c",
+        "src/fliptdi/ftdi.c",
+        "src/fliptdi/ftdi_usb.c",
+        "src/fliptdi/ftdi_bitbang.c",
+        "src/fliptdi/ftdi_gpio.c",
+        "src/fliptdi/ftdi_mpsse.c",
+        "src/fliptdi/tb2_spi_backend.c",
+    ],
+    stack_size=2048,
+    fap_category="Tools",
+    fap_icon="assets/core_flasher_icon.png",
+    fap_version=(1, 0, 0),
+    fap_description="Raw FT232H-compatible WebUSB to hardware-SPI bridge",
+    fap_author="Moritz",
+    targets=["f7"],
+)
