@@ -41,7 +41,7 @@ attribution and the pinned upstream revision.
 
 ## Installation
 
-1. Download the **1.0.0 FAP for your installed firmware** from Releases.
+1. Download the **1.0.1 FAP for your installed firmware** from Releases.
 2. Copy it to `/ext/apps/Tools/` on the SD card, using qFlipper or an SD reader.
 3. Open **Apps -> Tools -> Core Flasher**.
 
@@ -123,7 +123,7 @@ firmware root.
 
 | Path | Contents |
 |---|---|
-| `application.fam` | Standalone FAP manifest, version 1.0.0 |
+| `application.fam` | Standalone FAP manifest, version 1.0.1 |
 | `src/main.c` | Menu, diagnostic worker and application lifecycle |
 | `src/fliptdi/` | Adapted FTDI, MPSSE, USB and hardware-SPI source |
 | `assets/` | Application icon |
@@ -138,7 +138,7 @@ from the source repository. FAPs are attached to releases only.
 Release notes record compiler/APPCHK results and the firmware/API of each build.
 Hardware acceptance is separate from a successful build. Until WREN/WRDI,
 program/erase, readback and disconnect behavior have been checked on physical
-hardware, version 1.0.0 remains an **unverified build candidate**.
+hardware, version 1.0.1 remains an **unverified build candidate**.
 
 ## License
 

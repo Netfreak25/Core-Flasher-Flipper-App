@@ -16,7 +16,7 @@ App(
     stack_size=2048,
     fap_category="Tools",
     fap_icon="assets/core_flasher_icon.png",
-    fap_version=(1, 0, 0),
+    fap_version=(1, 0, 1),
     fap_description="Raw FT232H-compatible WebUSB to hardware-SPI bridge",
     fap_author="Moritz",
     targets=["f7"],

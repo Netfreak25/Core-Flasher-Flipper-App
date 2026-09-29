@@ -249,7 +249,7 @@ static bool core_flasher_custom_event(void* context, uint32_t event) {
         core_flasher_set_text(
             app,
             CoreFlasherScreenText,
-            "Core Flasher 1.0.0\n\nFT232H-compatible WebUSB\nraw SPI bridge.\nClient owns flash operations.\n\nGPL-3.0\nBack: return");
+            "Core Flasher 1.0.1\n\nFT232H-compatible WebUSB\nraw SPI bridge.\nClient owns flash operations.\n\nGPL-3.0\nBack: return");
         return true;
     default:
         return false;
