@@ -20,5 +20,5 @@
     "flip_tdi/helpers/ftdi_usb.h",
     "flip_tdi/helpers/ftdi_usb_define.h"
   ],
-  "local_changes": "Standalone Core Flasher FAP, MPSSE-only WebUSB transport, external 2 MHz raw SPI bridge, bounded UI and safe USB teardown"
+  "local_changes": "Standalone Core Flasher FAP, MPSSE-only WebUSB transport, external raw SPI bridge with saved 2/4 MHz default and MPSSE client clock selection, bounded UI and safe USB teardown"
 }

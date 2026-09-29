@@ -121,6 +121,7 @@ static int32_t ftdi_thread_worker(void* context) {
          * a packet that could not be submitted before the detach. */
         if(flags & EventReset) {
             ftdi_usb_tx_reset(&tx);
+            ftdi_reset_sio(ftdi_usb->ftdi);
             ftdi_usb->tx_complete = false;
             ftdi_usb->tx_immediate = false;
             flags &= ~(EventTx | EventTxComplete | EventTxImmediate);
@@ -309,6 +310,8 @@ static void ftdi_usb_tx_ep_callback(usbd_device* dev, uint8_t event, uint8_t ep)
 static usbd_respond ftdi_usb_ep_config(usbd_device* dev, uint8_t cfg) {
     switch(cfg) {
     case 0: // deconfig
+        if(ftdi_cur && ftdi_cur->thread && !ftdi_cur->shutting_down)
+            furi_thread_flags_set(furi_thread_get_id(ftdi_cur->thread), EventReset);
         usbd_ep_deconfig(dev, FTDI_USB_EP_OUT);
         usbd_ep_deconfig(dev, FTDI_USB_EP_IN);
         usbd_reg_endpoint(dev, FTDI_USB_EP_OUT, NULL);
@@ -574,12 +577,12 @@ static const struct FtdiUsbDescriptor usb_ftdi_cfg_descr = {
         },
 };
 
-FtdiUsb* ftdi_usb_start(void) {
+FtdiUsb* ftdi_usb_start(uint32_t default_hz) {
     FtdiUsb* ftdi_usb = calloc(1, sizeof(FtdiUsb));
     if(!ftdi_usb) return NULL;
 
     ftdi_usb->thread = furi_thread_alloc();
-    ftdi_usb->ftdi = ftdi_alloc();
+    ftdi_usb->ftdi = ftdi_alloc(default_hz);
     if(!ftdi_usb->thread || !ftdi_usb->ftdi) {
         if(ftdi_usb->ftdi) ftdi_free(ftdi_usb->ftdi);
         if(ftdi_usb->thread) furi_thread_free(ftdi_usb->thread);
@@ -627,4 +630,8 @@ bool ftdi_usb_stop(FtdiUsb* ftdi_usb) {
     ftdi_usb_runtime_stop(ftdi_usb);
     free(ftdi_usb);
     return true;
+}
+
+bool ftdi_usb_clock_status(FtdiUsb* usb, Tb2SpiClockStatus* status) {
+    return usb && usb->ftdi && ftdi_clock_status(usb->ftdi, status);
 }

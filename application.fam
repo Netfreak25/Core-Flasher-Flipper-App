@@ -3,7 +3,7 @@ App(
     name="Core Flasher",
     apptype=FlipperAppType.EXTERNAL,
     entry_point="core_flasher_app",
-    requires=["gui"],
+    requires=["gui", "storage"],
     sources=[
         "src/main.c",
         "src/fliptdi/ftdi.c",

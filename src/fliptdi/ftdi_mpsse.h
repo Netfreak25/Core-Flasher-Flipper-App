@@ -14,9 +14,13 @@ void ftdi_mpsse_gpio_set_callback(
     FtdiMpsseCallbackImmediate callback,
     void* context);
 
-FtdiMpsse* ftdi_mpsse_alloc(Ftdi* ftdi);
+FtdiMpsse* ftdi_mpsse_alloc(Ftdi* ftdi, uint32_t default_hz);
 void ftdi_mpsse_free(FtdiMpsse* ftdi_mpsse);
 void ftdi_mpsse_state_machine(FtdiMpsse* ftdi_mpsse);
 
 /** Release/invalidate the TB2 native-SPI bridge after USB/bitmode reset. */
 void ftdi_mpsse_native_spi_reset(FtdiMpsse* ftdi_mpsse);
+
+void ftdi_mpsse_session_reset(FtdiMpsse* mpsse);
+Tb2SpiClockStatus ftdi_mpsse_clock_status(FtdiMpsse* mpsse);
+bool ftdi_mpsse_clock_failed(FtdiMpsse* mpsse);

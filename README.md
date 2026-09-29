@@ -9,13 +9,13 @@ scripts, source assets and documentation.
 
 ## Features
 
-- Hardware SPI, mode 0, 2 MHz, using the external Flipper SPI pins.
+- Hardware SPI, mode 0, with a saved 2 or 4 MHz default and client clock overrides.
 - FT232H-compatible USB identity `0403:6014` and MPSSE transport.
 - Raw SPI TX/RX without a firmware flash-opcode whitelist or JEDEC write gate.
 - Complete buffered MPSSE writes across USB packet boundaries.
 - Existing 64-byte USB endpoints, 4 KiB buffering and pending-packet retry.
 - USB reset/purge handling and restoration of the previous USB interface on exit.
-- Standalone menus: **Start USB bridge**, **Test hardware SPI**, **Wiring**, **About**.
+- Standalone menus: **Start USB bridge**, **Test hardware SPI**, **Settings**, **Wiring**, **About**.
 - Optional W25Q128FV JEDEC diagnostic (`EF 40 18`). The diagnostic does not gate
   raw bridge transactions.
 
@@ -71,6 +71,25 @@ Use 3.3 V. The application does not enable a 5 V supply.
 5. Connect through the client's WebUSB device picker and perform the desired operation.
 6. Disconnect the client and press **Back** to restore the previous USB interface.
    Back from the application menu exits the app.
+
+## SPI clock settings
+
+Open **Settings**, select **Default SPI** to switch between **2 MHz** and
+**4 MHz**, then select **Save**. Back discards unsaved changes. The setting is
+stored in `/ext/apps_data/core_flasher/settings.conf` and read back after saving.
+Missing or invalid settings use 2 MHz.
+
+The saved clock applies until the client sends a complete MPSSE clock divisor
+command (`0x86`). The bridge supports the 12 MHz and 60 MHz MPSSE clock bases
+(`0x8B` and `0x8A`) and selects the fastest hardware SPI prescaler that does not
+exceed the requested rate. The default is not a maximum rate. The bridge screen
+shows the default, client-requested and applied rates separately.
+
+Clock changes during an active chip-select transaction take effect on the next
+SPI acquisition without changing chip select. A request below the hardware's
+minimum supported rate stops the bridge with an error rather than silently
+using a faster clock. USB/session and bit-mode resets restore the default;
+RX/TX buffer purges preserve the client's clock override.
 
 ## Building on Windows
 

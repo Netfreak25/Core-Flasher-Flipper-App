@@ -1,4 +1,5 @@
 #pragma once
+#include "tb2_spi_backend.h"
 #include "ftdi_usb_define.h"
 
 //#define FTDI_DEBUG
@@ -7,7 +8,7 @@ typedef struct Ftdi Ftdi;
 
 typedef void (*FtdiCallbackTxImmediate)(void* context);
 
-Ftdi* ftdi_alloc(void);
+Ftdi* ftdi_alloc(uint32_t default_hz);
 void ftdi_free(Ftdi* ftdi);
 void ftdi_set_callback_tx_immediate(Ftdi* ftdi, FtdiCallbackTxImmediate callback, void* context);
 void ftdi_reset_purge_rx(Ftdi* ftdi);
@@ -33,3 +34,6 @@ void ftdi_set_modem_status(Ftdi* ftdi, FtdiModemStatus status);
 
 void ftdi_start_uart_tx(Ftdi* ftdi);
 uint8_t ftdi_get_bitbang_gpio(Ftdi* ftdi);
+
+/** Nonblocking worker-serialized snapshot; false means busy. */
+bool ftdi_clock_status(Ftdi* ftdi, Tb2SpiClockStatus* status);

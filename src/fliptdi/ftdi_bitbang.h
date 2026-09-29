@@ -4,7 +4,7 @@
 
 typedef struct FtdiBitbang FtdiBitbang;
 
-FtdiBitbang* ftdi_bitbang_alloc(Ftdi* ftdi);
+FtdiBitbang* ftdi_bitbang_alloc(Ftdi* ftdi, uint32_t default_hz);
 void ftdi_bitbang_free(FtdiBitbang* ftdi_bitbang);
 FtdiMpsse* ftdi_bitbang_get_mpsse_handle(FtdiBitbang* ftdi_bitbang);
 void ftdi_bitbang_set_gpio(FtdiBitbang* ftdi_bitbang, uint8_t gpio_mask);
@@ -14,3 +14,5 @@ void ftdi_bitbang_notify(FtdiBitbang* ftdi_bitbang);
 uint8_t ftdi_bitbang_get_gpio(FtdiBitbang* ftdi_bitbang);
 void ftdi_bitbang_lock(FtdiBitbang* ftdi_bitbang);
 void ftdi_bitbang_unlock(FtdiBitbang* ftdi_bitbang);
+
+bool ftdi_bitbang_clock_status(FtdiBitbang* bitbang, Tb2SpiClockStatus* status);

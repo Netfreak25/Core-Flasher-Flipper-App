@@ -8,8 +8,8 @@ The FTDI/MPSSE and USB implementation contains adapted upstream source.
 Original origin revision: ee70c30014bfd5b85691fb8a219ae436c84e04e8.
 See third_party/flip_tdi/provenance.json for the adapted file list.
 
-Local modifications by Moritz, September 2026: external native hardware SPI at
-2 MHz, Core Flasher pin mapping and menu, raw byte forwarding without flash
+Local modifications by Moritz, September 2026: external native hardware SPI with a
+saved 2/4 MHz default and MPSSE client clock selection, Core Flasher pin mapping and menu, raw byte forwarding without flash
 opcode policy, complete MPSSE payload buffering, retained pending USB packets,
 USB lifecycle handling, hardware JEDEC diagnostic and standalone FAP packaging.
 The application runs independently.

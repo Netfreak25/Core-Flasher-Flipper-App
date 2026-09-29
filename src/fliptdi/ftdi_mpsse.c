@@ -32,6 +32,8 @@ struct FtdiMpsse {
     uint16_t data_size;
     bool is_loopback;
     bool is_div5;
+    bool divisor_valid;
+    uint16_t divisor;
     bool is_clk3phase;
     bool is_adaptive;
     FtdiMpsseError error;
@@ -210,7 +212,30 @@ static void ftdi_mpsse_native_spi_failure(FtdiMpsse* ftdi_mpsse, const char* sta
 #endif
 }
 
-FtdiMpsse* ftdi_mpsse_alloc(Ftdi* ftdi) {
+void ftdi_mpsse_session_reset(FtdiMpsse* mpsse) {
+    ftdi_mpsse_native_spi_reset(mpsse);
+    mpsse->is_div5 = true;
+    mpsse->divisor_valid = false;
+    mpsse->divisor = 0;
+    tb2_spi_backend_reset_clock(mpsse->tb2_spi);
+}
+
+Tb2SpiClockStatus ftdi_mpsse_clock_status(FtdiMpsse* mpsse) {
+    return tb2_spi_backend_clock_status(mpsse->tb2_spi);
+}
+
+bool ftdi_mpsse_clock_failed(FtdiMpsse* mpsse) {
+    return ftdi_mpsse_clock_status(mpsse).clock_error;
+}
+
+static void ftdi_mpsse_update_clock(FtdiMpsse* mpsse) {
+    if(!mpsse->divisor_valid) return;
+    uint32_t base = mpsse->is_div5 ? 12000000U : 60000000U;
+    uint32_t requested = base / (2U * ((uint32_t)mpsse->divisor + 1U));
+    if(!tb2_spi_backend_set_clock(mpsse->tb2_spi, requested)) ftdi_mpsse_native_spi_reset(mpsse);
+}
+
+FtdiMpsse* ftdi_mpsse_alloc(Ftdi* ftdi, uint32_t default_hz) {
     if(!ftdi) return NULL;
     FtdiMpsse* ftdi_mpsse = calloc(1, sizeof(FtdiMpsse));
     if(!ftdi_mpsse) return NULL;
@@ -219,7 +244,7 @@ FtdiMpsse* ftdi_mpsse_alloc(Ftdi* ftdi) {
     ftdi_mpsse->gpio_mask = FTDI_MPSSE_TB2_GPIO_MASK;
     ftdi_mpsse->data_size = 0;
     ftdi_mpsse->is_loopback = false;
-    ftdi_mpsse->is_div5 = false;
+    ftdi_mpsse->is_div5 = true;
     ftdi_mpsse->is_clk3phase = false;
     ftdi_mpsse->is_adaptive = false;
 
@@ -227,7 +252,7 @@ FtdiMpsse* ftdi_mpsse_alloc(Ftdi* ftdi) {
     ftdi_mpsse->data_buf = malloc(FTDI_MPSSE_TX_RX_SIZE * sizeof(uint8_t));
     ftdi_mpsse->data_buf_count_byte = 0;
     ftdi_mpsse->gpio_mask_old = 0xFF;
-    ftdi_mpsse->tb2_spi = tb2_spi_backend_alloc();
+    ftdi_mpsse->tb2_spi = tb2_spi_backend_alloc(default_hz);
     if(!ftdi_mpsse->data_buf || !ftdi_mpsse->tb2_spi) {
         FURI_LOG_E(TAG, "TB2 native SPI allocation failed");
         tb2_spi_backend_free(ftdi_mpsse->tb2_spi);
@@ -624,18 +649,25 @@ void ftdi_mpsse_state_machine(FtdiMpsse* ftdi_mpsse) {
         ftdi_mpsse_immediate(ftdi_mpsse);
         break;
     case FtdiMpsseCommandsSetTckDivisor: // 0x86  Set clock */
-        /* Native TB2 SPI uses the firmware's fixed external 2-MHz profile. Still consume
-         * both FT232H divisor bytes so ordinary MPSSE clients cannot desynchronize the stream. */
-        ftdi_mpsse_get_data_stream(ftdi_mpsse);
-        ftdi_mpsse_get_data_stream(ftdi_mpsse);
+    {
+        uint8_t low = ftdi_mpsse_get_data_stream(ftdi_mpsse);
+        uint8_t high = ftdi_mpsse_get_data_stream(ftdi_mpsse);
+        if(ftdi_mpsse->error == FtdiMpsseErrorNone) {
+            ftdi_mpsse->divisor = (uint16_t)low | ((uint16_t)high << 8);
+            ftdi_mpsse->divisor_valid = true;
+            ftdi_mpsse_update_clock(ftdi_mpsse);
+        }
         ftdi_mpsse_immediate(ftdi_mpsse);
         break;
+    }
     case FtdiMpsseCommandsDisDiv5: // 0x8a  Disable divide by 5 */
         ftdi_mpsse->is_div5 = false;
+        ftdi_mpsse_update_clock(ftdi_mpsse);
         ftdi_mpsse_immediate(ftdi_mpsse);
         break;
     case FtdiMpsseCommandsEnDiv5: // 0x8b  Enable divide by 5 */
         ftdi_mpsse->is_div5 = true;
+        ftdi_mpsse_update_clock(ftdi_mpsse);
         ftdi_mpsse_immediate(ftdi_mpsse);
         break;
     case FtdiMpsseCommandsEnableClk3Phase: // 0x8c  Enable 3-phase data clocking (I2C) */

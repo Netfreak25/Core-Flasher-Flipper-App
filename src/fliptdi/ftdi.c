@@ -35,7 +35,7 @@ static void ftdi_immediate(void* context) {
         ftdi->callback_tx_immediate(ftdi->context_tx_immediate);
 }
 
-Ftdi* ftdi_alloc(void) {
+Ftdi* ftdi_alloc(uint32_t default_hz) {
     Ftdi* ftdi = calloc(1, sizeof(*ftdi));
     if(!ftdi) return NULL;
     ftdi->latency = 16U;
@@ -50,7 +50,7 @@ Ftdi* ftdi_alloc(void) {
         free(ftdi);
         return NULL;
     }
-    ftdi->bitbang = ftdi_bitbang_alloc(ftdi);
+    ftdi->bitbang = ftdi_bitbang_alloc(ftdi, default_hz);
     if(!ftdi->bitbang) {
         furi_stream_buffer_free(ftdi->stream_tx);
         furi_stream_buffer_free(ftdi->stream_rx);
@@ -93,7 +93,7 @@ void ftdi_reset_purge_tx(Ftdi* ftdi) {
 void ftdi_reset_sio(Ftdi* ftdi) {
     if(!ftdi) return;
     ftdi_bitbang_lock(ftdi->bitbang);
-    ftdi_mpsse_native_spi_reset(ftdi_bitbang_get_mpsse_handle(ftdi->bitbang));
+    ftdi_mpsse_session_reset(ftdi_bitbang_get_mpsse_handle(ftdi->bitbang));
     if(furi_stream_buffer_reset(ftdi->stream_rx) != FuriStatusOk)
         FURI_LOG_E(TAG, "RX reset failed");
     if(furi_stream_buffer_reset(ftdi->stream_tx) != FuriStatusOk)
@@ -166,7 +166,7 @@ void ftdi_set_bitmode(Ftdi* ftdi, uint16_t value, uint16_t index) {
     if(!ftdi || !ftdi_check_interface(index)) return;
     ftdi_bitbang_lock(ftdi->bitbang);
     FtdiMpsse* mpsse = ftdi_bitbang_get_mpsse_handle(ftdi->bitbang);
-    ftdi_mpsse_native_spi_reset(mpsse);
+    ftdi_mpsse_session_reset(mpsse);
     memset(&ftdi->bit_mode, 0, sizeof(ftdi->bit_mode));
     ftdi->bit_mode_mask = FTDI_MPSSE_TB2_GPIO_MASK;
     uint8_t requested = (uint8_t)(value >> 8);
@@ -213,4 +213,8 @@ void ftdi_start_uart_tx(Ftdi* ftdi) {
 
 uint8_t ftdi_get_bitbang_gpio(Ftdi* ftdi) {
     return ftdi ? ftdi_bitbang_get_gpio(ftdi->bitbang) : 0;
+}
+
+bool ftdi_clock_status(Ftdi* ftdi, Tb2SpiClockStatus* status) {
+    return ftdi_bitbang_clock_status(ftdi->bitbang, status);
 }

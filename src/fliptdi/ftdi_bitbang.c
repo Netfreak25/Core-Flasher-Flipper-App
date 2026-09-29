@@ -33,7 +33,8 @@ static int32_t ftdi_bitbang_worker(void* context) {
         if(events & WorkerEventStop) break;
         if(events & WorkerEventData) {
             furi_mutex_acquire(bitbang->mutex, FuriWaitForever);
-            while(bitbang->mode == FtdiBitbangModeMpsse && ftdi_available_rx_buf(bitbang->ftdi))
+            while(bitbang->mode == FtdiBitbangModeMpsse &&
+                  !ftdi_mpsse_clock_failed(bitbang->mpsse) && ftdi_available_rx_buf(bitbang->ftdi))
                 ftdi_mpsse_state_machine(bitbang->mpsse);
             furi_mutex_release(bitbang->mutex);
         }
@@ -41,12 +42,12 @@ static int32_t ftdi_bitbang_worker(void* context) {
     return 0;
 }
 
-FtdiBitbang* ftdi_bitbang_alloc(Ftdi* ftdi) {
+FtdiBitbang* ftdi_bitbang_alloc(Ftdi* ftdi, uint32_t default_hz) {
     if(!ftdi) return NULL;
     FtdiBitbang* bitbang = calloc(1, sizeof(*bitbang));
     if(!bitbang) return NULL;
     bitbang->ftdi = ftdi;
-    bitbang->mpsse = ftdi_mpsse_alloc(ftdi);
+    bitbang->mpsse = ftdi_mpsse_alloc(ftdi, default_hz);
     bitbang->mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     bitbang->worker = furi_thread_alloc_ex("FlipTDIMpsse", 2048, ftdi_bitbang_worker, bitbang);
     if(!bitbang->mpsse || !bitbang->mutex || !bitbang->worker) {
@@ -108,4 +109,11 @@ void ftdi_bitbang_lock(FtdiBitbang* bitbang) {
 
 void ftdi_bitbang_unlock(FtdiBitbang* bitbang) {
     if(bitbang) furi_mutex_release(bitbang->mutex);
+}
+
+bool ftdi_bitbang_clock_status(FtdiBitbang* bitbang, Tb2SpiClockStatus* status) {
+    if(furi_mutex_acquire(bitbang->mutex, 0) != FuriStatusOk) return false;
+    *status = ftdi_mpsse_clock_status(bitbang->mpsse);
+    furi_mutex_release(bitbang->mutex);
+    return true;
 }
